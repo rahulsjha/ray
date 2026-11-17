@@ -1,0 +1,9 @@
+applications:
+- name: default
+  route_prefix: /
+  import_path: toy:app
+  deployments:
+  - name: Translator
+    num_replicas: 1
+  - name: Summarizer
+    num_replicas: 1

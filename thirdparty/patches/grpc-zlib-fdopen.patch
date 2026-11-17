@@ -1,0 +1,13 @@
+diff -u bazel/grpc_deps.bzl
+--- bazel/grpc_deps.bzl
++++ bazel/grpc_deps.bzl
+@@ -53,6 +53,9 @@
+                 "https://storage.googleapis.com/grpc-bazel-mirror/github.com/madler/zlib/archive/09155eaa2f9270dc4ed1fa13e2b4b2613e6e4851.tar.gz",
+                 "https://github.com/madler/zlib/archive/09155eaa2f9270dc4ed1fa13e2b4b2613e6e4851.tar.gz",
+             ],
++            patches = [
++                "@io_ray//thirdparty/patches:zlib-fdopen.patch",
++            ]
+         )
+ 
+     if "com_google_protobuf" not in native.existing_rules():
