@@ -28,28 +28,39 @@ Lightweight config updates modify running deployment replicas without tearing th
 
 ## Updating in place from Python
 
-Lightweight updates only apply to applications deployed declaratively, from a config. `serve.run` deploys an application object imperatively, and because Serve can't tell which version of the code that object holds, every `serve.run` call redeploys the whole application and restarts all of its replicas.
+Lightweight updates apply only to applications deployed declaratively from a config. `serve.run` deploys an application object imperatively. Serve can't tell which version of the code that object holds, so every `serve.run` call redeploys the whole application and restarts all of its replicas.
 
-To update an application in place from code instead of a config file, send the config to the same REST API that `serve deploy` uses. The config you send replaces the cluster's declarative config: it must list every application that was deployed from a config, because Serve deletes the ones it leaves out. Applications deployed with `serve.run` are not affected. The simplest way to keep the other applications is to start from the configs Serve reports for them:
+To update an application in place from code instead of a config file, send the config to the same REST API that `serve deploy` uses.
+
+:::{warning}
+The config you send replaces the cluster's declarative config. List every application that was deployed from a config, because Serve deletes any that the config leaves out. Applications deployed with `serve.run` aren't affected.
+:::
+
+To keep the other applications, start from the configs Serve reports for them. This example scales the `Translator` deployment of the `default` application from the [example in the next section](serve-updating-user-config). A reported config lists only the deployments the submitted config named, so the example adds a `Translator` entry when there isn't one:
 
 ```python
 import requests
 
 DASHBOARD = "http://localhost:8265"
 
-details = requests.get(f"{DASHBOARD}/api/serve/applications/").json()
+response = requests.get(f"{DASHBOARD}/api/serve/applications/")
+response.raise_for_status()
+details = response.json()
 applications = [
     app["deployed_app_config"]
     for app in details["applications"].values()
-    if app["deployed_app_config"]  # only applications deployed from a config
+    if app["deployed_app_config"]  # Keep only applications deployed from a config.
 ]
 
 # Change one deployment's replica count, a lightweight update.
 for app in applications:
     if app["name"] == "default":
-        for deployment in app.get("deployments", []):
-            if deployment["name"] == "Translator":
-                deployment["num_replicas"] = 3
+        deployments = app.setdefault("deployments", [])
+        translator = next((d for d in deployments if d["name"] == "Translator"), None)
+        if translator is None:
+            translator = {"name": "Translator"}
+            deployments.append(translator)
+        translator["num_replicas"] = 3
 
 requests.put(
     f"{DASHBOARD}/api/serve/applications/", json={"applications": applications}

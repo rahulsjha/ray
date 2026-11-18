@@ -1062,15 +1062,15 @@ def run(
         handle = serve.run(MyDeployment.bind())
         ray.get(handle.remote())
 
-    `serve.run` deploys imperatively: it deploys an application object. Serve
-    can't tell which version of the code an application object holds, so every
-    `serve.run` call redeploys the whole application, replacing all of its
-    replicas, even when only a deployment option such as `num_replicas` changed.
-    To update a running application in place, deploy it declaratively instead,
-    from a config file with `serve deploy` or through the REST API: Serve then
-    applies a lightweight config change, such as `num_replicas`,
-    `autoscaling_config` or `user_config`, to the running replicas without
-    restarting them. See :ref:`serve-inplace-updates`.
+    `serve.run` deploys imperatively, from an application object. Serve can't
+    tell which version of the code an application object holds, so every
+    `serve.run` call redeploys the whole application and replaces all of its
+    replicas, even when only a deployment option such as `num_replicas`
+    changed. To update a running application in place, deploy it
+    declaratively instead, from a config file with `serve deploy` or through
+    the REST API. Serve then applies a lightweight config change, such as
+    `num_replicas`, `autoscaling_config`, or `user_config`, to the running
+    replicas without restarting them. See :ref:`serve-inplace-updates`.
 
     Args:
         target:
